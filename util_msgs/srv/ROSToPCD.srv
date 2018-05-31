@@ -1,0 +1,9 @@
+# Mabel Zhang
+# 26 Jan 2018
+
+# Full path of file name to save the ROS point cloud to
+string pcd_name
+---
+bool success
+string message
+

@@ -1,0 +1,19 @@
+# Mabel Zhang
+# 26 Feb 2018
+
+# Full path of .pcd file to load the point cloud from
+string pcd_name
+
+# Don't use this, creating the publisher at every service call will slow down
+#   the publishing! Just create the C++ node with a rostopic name and create
+#   publisher only once, in ctor.
+# ROS topic to publish the point cloud to
+#string topic_name
+
+string frame_id
+
+---
+sensor_msgs/PointCloud2 cloud
+bool success
+string message
+

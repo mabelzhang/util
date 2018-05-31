@@ -1,0 +1,58 @@
+# Mabel Zhang
+# 28 Jun 2017
+#
+# Service handled by util matplotlib_main_thread.py.
+# Used for plotting in matplotlib in a thread outside of a ROS node's
+#   main thread, to work around the Tkinter error of "main thread is not in
+#   main loop" error.
+#
+
+# Plotting function. 'matshow', 'plot', 'text', 'quiver' (3D arrows), 'save'
+#   (save a figure to image), 'close_all' (close all windows)
+string plot_fn
+
+# Linearized data. If data is more than 1D, np.reshape() it to shapes in dims.
+# No C++ files use this srv at the moment, so they are not handled. If need
+#   to handle data shaped from libraries other than NumPy, use
+#   std_msgs/Float32MultiArray here instead - too much work to implement
+#   so I didn't do it.
+# For matshow(): This is the array containing the matrix to plot. dims specify
+#   the dimensions.
+# For plot(): This is the array containing (x, y) coordinates
+#   to plot, n x 2, specified in dims. i.e. x-coords would be
+#   mat[:, 0], y is mat[:, 1].
+# For quiver(): mat is n x 6 (dims should be [n, 6]), (pts, vecs).
+#   pts is n x 3, vecs is n x 3.
+#   pts define where the arrows start, vecs define direction.
+# For text(): mat should contain 2 elements only, [x, y], the coordinates
+#   of text.
+float32[] mat
+#std_msgs/Float32MultiArray mat
+
+# [0] for mat.shape[0], [1] for mat.shape[1]
+int32[] dims
+
+# Optional output image file name, if you want to save plot to file
+string out_name
+
+# If plot_fn == 'matshow', then this is string for colormap, e.g. 'jet',
+#   'viridis'
+string text
+
+# Figure name, in case caller wants to plot something overlaid on an
+#   existing figure. Service handler assigns the name to the matplotlib
+#   figure number, to find it by name again.
+# (Not using figure number in service response, `.` service responds before
+#   making a figure. Figure plotting needs to be in main thread, not a
+#   rosservice sub thread.)
+# Ignored for quiver and matshow modes. Those needs special fig and axis
+#   configurations.
+# To always show in the same figure (like when running things in batch and
+#   don't want to open a million figures, just pass in the same fig_name
+#   each time, and they will all be plotted in the same window.
+string fig_name
+
+---
+bool success
+string message
+

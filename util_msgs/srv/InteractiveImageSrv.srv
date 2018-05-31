@@ -1,0 +1,16 @@
+# Mabel Zhang
+# 7 Jun 2017
+#
+# Service is handled by util/InteractiveImageUtil.py
+#
+
+sensor_msgs/Image img
+bool datacoords
+bool fix_lims
+---
+# -1 indicates that latest (u, v) had been fetched before, and no new calls
+#   values have been obtained. This prevents caller from using the same
+#   values without realizing it is just seeing the same message repeatedly.
+int32 u
+int32 v
+
