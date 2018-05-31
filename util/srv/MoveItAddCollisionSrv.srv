@@ -1,0 +1,26 @@
+# Mabel Zhang
+# 7 Sep 2016
+#
+# Service is implemented in util package, moveit_collision_util.h
+#   add_collision_box_srv().
+#
+
+geometry_msgs/PoseStamped pose_init
+geometry_msgs/Vector3 dims_init
+
+# If true, then will ask user to use Interactive Markers in RViz to adjust
+#   object center and pose.
+# If false, will simply use the ones passed in above, without asking for
+#   additional adjustment.
+bool ask_user_input
+
+# Only used when ask_user_input == true.
+# 3-elt array. [0] for orientation wrt x axis, [1] for y, [2] for z.
+# If true, adds InteractiveMarker to adjust rotation in pose. 
+#   Else not added. `.` rotation marker is big and user can click it by
+#   mistake, when they don't meant to adjust rotation. Hence this flag.
+bool[] adjust_orientation
+---
+bool success
+geometry_msgs/PoseStamped pose_fin
+geometry_msgs/Vector3 dims_fin
