@@ -7,11 +7,6 @@
 #
 
 import matplotlib
-# For running on GPU cluster remotely, which does not have python-tk
-import socket
-if socket.gethostname () != 'snaefellsjokull':
-  # Ref: https://stackoverflow.com/questions/4930524/how-can-i-set-the-backend-in-matplotlib-in-python
-  matplotlib.use ('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LinearSegmentedColormap  # For custom colormap
