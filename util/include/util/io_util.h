@@ -9,6 +9,8 @@
 // File I/O utility functions
 //
 
+#include <stdio.h>
+
 // For create_dir_if_nonexist() and concat_paths()
 #include <boost/filesystem.hpp>
 
@@ -42,8 +44,8 @@ void create_dir_if_nonexist (const std::string filepath)
 // Concatenate two parts of a path together, like python os.path.join(), but
 //   with only two arguments.
 // Parameters:
-//   parent, child: two paths to concatenate together
-//   concat: ret val
+//   parent, child: Two paths to concatenate together
+//   concat: Ret val
 void join_paths (const std::string parent, const std::string child,
   std::string & concat)
 {
@@ -62,6 +64,9 @@ void join_paths (const std::string parent, const std::string child,
 }
 
 // Overloaded function
+// Parameters:
+//   subpaths: Vector of many directory names to be concatenated together
+//   concat: Ret val
 void join_paths (const std::vector <std::string> & subpaths,
   std::string & concat)
 {

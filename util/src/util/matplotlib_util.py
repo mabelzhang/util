@@ -7,6 +7,11 @@
 #
 
 import matplotlib
+# For running on GPU cluster remotely, which does not have python-tk
+import socket
+if socket.gethostname () != 'snaefellsjokull':
+  # Ref: https://stackoverflow.com/questions/4930524/how-can-i-set-the-backend-in-matplotlib-in-python
+  matplotlib.use ('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LinearSegmentedColormap  # For custom colormap
@@ -37,7 +42,11 @@ def truetype ():
 # Figure and axis with black background, white text.
 # Call this after you've plotted with plot(), matshow(), etc.
 # Copied from active_touch/src/fig_recog_acc.py
-def black_background (ax=None, bg_color='black', fg_color='white'):
+# To save the figure with black background:
+# Ref savefig() black background: https://stackoverflow.com/questions/4804005/matplotlib-figure-facecolor-background-color
+#   plt.savefig (img_name, bbox_inches='tight',
+#     facecolor=fig.get_facecolor (), edgecolor='none', transparent=True)
+def black_background (ax=None, title_hdl=None, bg_color='black', fg_color='white'):
 
   if ax is None:
     ax = plt.gca ()
@@ -61,6 +70,9 @@ def black_background (ax=None, bg_color='black', fg_color='white'):
 
   ax.yaxis.label.set_color (fg_color)
   ax.tick_params (axis='y', colors=fg_color)
+
+  if title_hdl:
+    plt.setp (title_hdl, color=fg_color)
 
 
 # Colorbar with black background
@@ -151,6 +163,9 @@ def custom_colormap ():
 # Colors taken from Lepora BBS 2013 paper :D I love those neon colors!
 # Use this in Python prompt to see all the colors in a gradient:
 #   >> from util.matplotlib_util import plot_colormap; plot_colormap()
+# To use this colormap in plotting:
+#   cm_name = custom_colormap_neon ()
+#   mpl_color (item_idx, n_items, colormap_name=cm_name)
 def custom_colormap_neon ():
 
   cm_name = 'my_neon'
@@ -189,6 +204,32 @@ def custom_colormap_neon ():
   plt.register_cmap (cmap=cm_r)
 
   return cm_name
+
+
+# Matplotlib official color, which my version doesn't have. So manually
+#   define it.
+# Ref: https://matplotlib.org/examples/color/colormaps_reference.html
+#   https://matplotlib.org/examples/pylab_examples/custom_cmap.html
+def tab10_colormap ():
+
+  tab10 = np.array ([
+    (31, 119, 180),
+    (255, 127, 14),
+    (44, 160, 44),
+    (214, 39, 40),
+    (148, 103, 189),
+    (140, 86, 75),
+    (227, 119, 194),
+    (127, 127, 127),
+    (23, 190, 207),
+    (188, 189, 34)
+  ], dtype=np.float32)
+  tab10 /= 255.0
+
+  return tab10
+
+  #cm_name = 'tab10'
+  #return cm_name
 
 
 # Ref: https://matplotlib.org/examples/color/colormaps_reference.html

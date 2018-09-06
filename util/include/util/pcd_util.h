@@ -67,7 +67,7 @@ void negate_indices (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_ptr,
 void min_cut_segment (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_ptr,
   const std::string frame_id, ros::Publisher & vis_pub);
 
-// Conversions
+// Conversions between pcl::PointCloud and ROS point cloud
 void pcl_to_ros (const pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   sensor_msgs::PointCloud2 & msg);
 void ros_to_pcl (const sensor_msgs::PointCloud2 & msg,
@@ -93,6 +93,11 @@ void visualize_cloud (pcl::PointCloud <pcl::PointXYZRGB>::Ptr & cloud_rgb,
 
 // Copied from active_visual_tactile input_cloud.h and feature_fpfh.h
 // Load cloud from .pcd file
+// Example use: visual_tactile_pipeline extend_table_infinitely.cpp
+// Parameters:
+//   pcl::PointCloud <pcl::PointXYZ>::Ptr cloud_ptr_ =
+//     pcl::PointCloud <pcl::PointXYZ>::Ptr (
+//       new pcl::PointCloud <pcl::PointXYZ> ());
 bool load_cloud_file (const std::string & cloud_name,
   pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_ptr, float scale)
 {
@@ -108,6 +113,9 @@ bool load_cloud_file (const std::string & cloud_name,
   //   Copied from triangle_sampling sample_pcl.cpp
   //   API: http://docs.pointclouds.org/trunk/group__io.html
   pcl::io::loadPCDFile (cloud_name, *cloud_ptr);
+
+  //printf ("Cloud size: %ld points\n", cloud_ptr->size ());
+  //printf ("Organized? %s\n", cloud_ptr->isOrganized () ? "true" : "false");
 
   if (scale != 1.0)
     rescale_cloud (cloud_ptr, scale);
@@ -753,6 +761,7 @@ void min_cut_segment (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_ptr,
 
 // ========================================================= Conversions ==
 
+// Convert pcl::PointCloud to ROS point cloud
 void pcl_to_ros (const pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   sensor_msgs::PointCloud2 & msg)
 {
@@ -761,6 +770,7 @@ void pcl_to_ros (const pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   toROSMsg (*cloud_p, msg);
 }
 
+// Convert ROS point cloud to pcl::PointCloud
 void ros_to_pcl (const sensor_msgs::PointCloud2 & msg,
   pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p)
 {
