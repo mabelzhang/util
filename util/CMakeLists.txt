@@ -159,6 +159,9 @@ target_link_libraries(ros_to_pcd ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_executable(pcd_to_ros src/pcd_to_ros.cpp)
 target_link_libraries(pcd_to_ros ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
+add_executable(lin_alg_util src/lin_alg_util.cpp)
+target_link_libraries(lin_alg_util ${catkin_LIBRARIES})
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(util_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

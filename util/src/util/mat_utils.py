@@ -3,6 +3,7 @@
 # Mabel Zhang
 # 2 Sep 2016
 #
+# Matrix utilities.
 # Utility functions for numpy arrays, especially vectorization operations
 #   that eliminate for-loops!
 #

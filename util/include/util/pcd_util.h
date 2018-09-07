@@ -74,17 +74,23 @@ void ros_to_pcl (const sensor_msgs::PointCloud2 & msg,
   pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p);
 
 // Visualization
+//   Publish as ROS PointCloud (which is displayable in RViz)
 void publish_cloud (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   const std::string frame_id, const std::string ns, ros::NodeHandle & nh,
   int sleep_time=5);
+// Publish selected indices in the cloud
 void publish_cloud (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_ptr,
   pcl::PointIndices::Ptr & indices,
   const std::string frame_id, const std::string ns, ros::NodeHandle & nh,
   int sleep_time=5);
 
+// Publish as ROS RViz POINTS Markers
+// All markers will be of same specified color.
 void visualize_cloud (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud,
   const std::string frame_id, const std::string ns,
   std_msgs::ColorRGBA & color, ros::Publisher & vis_pub);
+// Each point marker can have a different color, as specified in the
+//   PointXYZRGB.
 void visualize_cloud (pcl::PointCloud <pcl::PointXYZRGB>::Ptr & cloud_rgb,
   const std::string frame_id, const std::string ns, ros::Publisher & vis_pub);
 
@@ -885,6 +891,7 @@ void visualize_cloud (pcl::PointCloud <T>::Ptr & cloud,
 
 // Visualize a cloud in RViz Marker. This might be slower than publishing
 //   the cloud directly onto a rostopic as sensor_msgs::PointCloud2.
+// All markers will be of same specified color.
 // Only need to use RViz POINTS when want to color each point cloud a
 //   different color. RViz only lets you set one color for all PointCloud2s
 //   displayed.
@@ -925,6 +932,8 @@ void visualize_cloud (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud,
 
 // Overloaded function
 // Visualize a point cloud in RViz Marker, each point a specified color
+// Each point marker can have a different color, as specified in the
+//   PointXYZRGB.
 void visualize_cloud (pcl::PointCloud <pcl::PointXYZRGB>::Ptr & cloud_rgb,
   const std::string frame_id, const std::string ns, ros::Publisher & vis_pub)
 {
