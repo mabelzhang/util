@@ -8,11 +8,17 @@
 //
 // File I/O utility functions
 //
+// See other convenience functions in
+//   #include <boost/filesystem/convenience.hpp>
+//
 
 #include <stdio.h>
+#include <fstream>  // std::ifstream
 
 // For create_dir_if_nonexist() and concat_paths()
 #include <boost/filesystem.hpp>
+// API https://www.boost.org/doc/libs/1_33_1/libs/filesystem/doc/convenience.htm
+#include <boost/filesystem/convenience.hpp>  // basename(), extension()
 
 // For current_time_string()
 #include <ctime>
@@ -108,6 +114,25 @@ void dirname (const std::string & path, std::string & dir)
   dir = path.substr (0, tmp_idx);
 }
 
+// Like python os.path.basename ()
+void basename (const std::string & path, std::string & base)
+{
+  boost::filesystem::path path_bst (path);
+  base = boost::filesystem::basename (path_bst);
+}
+
+// Like python os.path.splitext ()
+void splitext (const std::string & path, std::vector <std::string> & exts)
+{
+  exts.clear ();
+
+  // API http://www.cplusplus.com/reference/string/string/find_last_of/
+  std::size_t found = path.find_last_of (".");
+
+  exts.push_back (path.substr (0, found));
+  exts.push_back (path.substr (found + 1));
+}
+
 // TODO: Not tested yet
 // Returns formatted date-time string in param.
 void current_time_string (std::string & result)
@@ -124,5 +149,44 @@ void current_time_string (std::string & result)
 
   result = std::string (buffer);
 }
+
+
+class ReadFileLineByLine
+{
+  private:
+
+    // Pointer, `.` can't use plain std::ifstream as member var. ios_base is
+    //   not assignable, compiler errors.
+    // Ref: http://www.cplusplus.com/forum/beginner/11541/
+    std::ifstream * ifs_;
+
+  public:
+
+    // Ctor
+    // Parameters:
+    //   ifs: Caller instantiates and passes in e.g.
+    //     std::ifstream ifs ("/path/to/file");
+    ReadFileLineByLine (std::ifstream & ifs)
+    {
+      ifs_ = &ifs;
+    }
+
+    ~ReadFileLineByLine ()
+    {
+      ifs_ -> close ();
+    }
+
+    bool readline (std::string & ret_val)
+    {
+      return std::getline (*ifs_, ret_val);
+    }
+
+    void close ()
+    {
+      ifs_ -> close ();
+    }
+
+};
+
 
 #endif
