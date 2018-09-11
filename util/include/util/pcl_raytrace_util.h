@@ -43,27 +43,56 @@ class RayTracer
 
   public:
 
+    // Parameters:
+    //   resolution: size of leaf voxels, in meters.
     RayTracer (pcl::PointCloud <pcl::PointXYZ>::Ptr & input_cloud,
       float resolution, bool vis=false, ros::NodeHandle * nh=NULL,
       std::string frame_id="/world")
     {
+      vis_ = vis;
+      nh_ = nh;
+      frame_id_ = frame_id;
+
+      // Instantiate this early, else will not be created in time to publish
+      //   the first markers in this function below.
+      vis_pub_ = nh_ -> advertise <visualization_msgs::Marker> (
+        "visualization_marker", 5);
+
       octree_ = pcl::octree::OctreePointCloudSearch <pcl::PointXYZ>::Ptr (
         new pcl::octree::OctreePointCloudSearch <pcl::PointXYZ> (resolution));
       octree_ -> setInputCloud (input_cloud);
       octree_ -> addPointsFromInputCloud ();
 
-      vis_ = vis;
-      nh_ = nh;
-      frame_id_ = frame_id;
-
       if (vis_)
       {
-        vis_pub_ = nh_ -> advertise <visualization_msgs::Marker> (
-          "visualization_marker", 5);
-
         // This uses a publisher of different type (pcl::PointCloud), so no
         //   conflict with visualization_msgs::Marker publisher.
         publish_cloud (input_cloud, frame_id_, "cloud", *nh_);
+
+        // Visualize voxels
+        pcl::octree::OctreePointCloud <pcl::PointXYZ>::AlignedPointTVector
+          voxels;
+        octree_ -> getOccupiedVoxelCenters (voxels);
+        printf ("Number of voxels: %ld\n", voxels.size ());
+
+        visualization_msgs::Marker marker_vx;
+        create_marker (visualization_msgs::Marker::CUBE_LIST, frame_id_, 0,
+          0, 0, 0, 0.8, 0.8, 0.8, 0.5, resolution, resolution, resolution,
+          marker_vx, "voxel", 1, 0, 0, 0, 0);
+
+        for (int i = 0; i < voxels.size (); i ++)
+        {
+          //printf ("Voxel: %g %g %g\n", voxels.at (i).x, voxels.at (i).y,
+          //  voxels.at (i).z);
+
+           geometry_msgs::Point pt;
+           pt.x = voxels.at (i).x;
+           pt.y = voxels.at (i).y;
+           pt.z = voxels.at (i).z;
+           marker_vx.points.push_back (pt);
+        }
+        vis_pub_.publish (marker_vx);
+        ros::Rate (4).sleep ();
       }
     }
 
@@ -76,13 +105,14 @@ class RayTracer
     //   ray, test whether the endpoint of ray is occluded by any points in
     //   the point cloud.
     // Parameters:
-    //   origin, endpoint: Ray to shoot into the point cloud.
+    //   origin: Starting point of ray to shoot into the point cloud.
+    //   endpt: Endpoint of ray to shoot into the point cloud.
     //     Endpoint will be tested if in front of intersected voxel, or behind,
     //     from the perspective of the origin point, along the ray.
     //     If the ordering of the points projected onto the ray is (origin,
-    //     point, intersection), then point is in front of intersection.
-    //     If the ordering is (origin, intersection, point), then point is
-    //     behind intersection.
+    //     endpoint, intersection), then endpoint is in front of intersection.
+    //     If the ordering is (origin, intersection, endpoint), then endpoint
+    //     is behind intersection.
     //   vis: Whether to visualize point cloud and raytracing in RViz.
     //   nh: Only used if vis == true.
     // Returns true if point is behind intersection (i.e. point cloud occludes
@@ -128,7 +158,7 @@ class RayTracer
       // If distance from ray origin to intersection in point cloud <
       //   distance from ray origin to the given point, then the given point
       //   is occluded by the cloud.
-      //   ray_origin --- cloud --- given_point
+      //   ray_origin --- cloud --- endpoint
       // When there are multiple intersections in the cloud, as long as the
       //   given point is behind at least one point in the cloud, it is
       //   occluded by the cloud.
@@ -139,10 +169,12 @@ class RayTracer
         occluded = false;
 
 
-      // Visualize ray and occlusion in RViz. If occluded (i.e. ray goes
-      //   through cloud), red ray. Else (ray goes through free space), green.
       if (vis_)
       {
+        /////
+        // Visualize ray and occlusion in RViz. If occluded (i.e. ray goes
+        //   through cloud), red ray. Else (ray goes through free space), green.
+
         float r = 0.0, g = 0.0, b = 0.0;
         // Color ray red, to indicate it hit something
         if (occluded)
@@ -180,6 +212,8 @@ class RayTracer
         p2.z = endpt [2];
         marker_ray.points.push_back (p2);
 
+
+        // Publish Markers
         for (int i = 0; i < 5; i ++)
         {
           vis_pub_.publish (marker_ray);
