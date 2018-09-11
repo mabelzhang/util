@@ -15,6 +15,7 @@
 #include <fstream>
 #include <string>
 #include <stdio.h>
+#include <time.h>
 
 // ROS
 #include <ros/ros.h>
@@ -26,11 +27,13 @@
 #include <util/pcl_raytrace_util.h>  // RayTracer
 
 
-
 int main (int argc, char ** argv)
 {
-  ros::init (argc, argv, "test_pcl_raytrace_util");
+  ros::init (argc, argv, "occlusion_test");
   ros::NodeHandle nh;
+
+  // Random seed
+  srand (time (NULL));
 
 
   // Get path of package
@@ -41,10 +44,10 @@ int main (int argc, char ** argv)
   join_paths (pkg_path, "config/scenes_noisy.txt", noisy_scene_list_path);
   std::ifstream noisy_scene_list_f (noisy_scene_list_path.c_str ());
 
-  // Octree resolution
-  float octree_res = 128.0f;
+  // Octree resolution, in meters
+  float octree_res = 0.005;
 
-  // Read text file line by line
+  // Read text file line by line. Each line is the path to a .pcd scene file
   std::string scene_name = "";
   while (std::getline (noisy_scene_list_f, scene_name))
   {
@@ -62,19 +65,40 @@ int main (int argc, char ** argv)
     // Ref: http://pointclouds.org/documentation/tutorials/octree.php
     RayTracer raytracer = RayTracer (cloud_ptr, octree_res, true, &nh);
 
+
     printf ("Testing ray-tracing...\n");
     // Origin of ray is always from camera center, 0 0 0.
     Eigen::Vector3f origin (0, 0, 0);
+
+
     // 1 m along z of camera frame, i.e. straight out of and normal to image
     //   plane.
-    // TODO: Seems like Blender decides camera faces -z. So will shoot to -z.
-    //   Either that, or BlenSor pcd is in world frame. Check if that is the
-    //   case, by moving object elsewhere. Fix it so that the pcd is in camera
-    //   frame!
-    Eigen::Vector3f endpoint (0, 0, -1);
-    // Ray trace
-    bool occluded = raytracer.raytrace_occlusion_test (origin, endpoint);
-    printf ("Occluded? %s\n", occluded ? "true" : "false");
+    // Blender camera faces -z. So will shoot to -z.
+    //Eigen::Vector3f endpoint (0, 0, -1);
+
+    // Generate a number between 1 and 10
+    int nPts = rand () % 10 + 1;
+    printf ("Generated %d random points\n", nPts);
+    // Generate a set of random endpoints
+    // TODO: Generate integer indices of the voxels, and just as many points
+    //   that aren't part of the voxels.
+    Eigen::MatrixXf endpoints = Eigen::MatrixXf::Random (nPts, 3);
+
+    // Must test endpoints one by one, not an n x 3 matrix, `.` octree
+    //   getIntersectedVoxelCenters() only takes one ray at a time.
+    for (int i = 0; i < nPts; i ++)
+    {
+      std::cout << "Ray through " << endpoints.row (i) << std::endl;
+
+      // Ray trace
+      bool occluded = raytracer.raytrace_occlusion_test (origin,
+        endpoints.row (i));
+      printf ("Occluded? %s\n", occluded ? "true" : "false");
+
+      //char enter;
+      //std::cout << "Press any character, then press enter: ";
+      //std::cin >> enter;
+    }
   }
 
   return 0;

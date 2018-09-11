@@ -151,6 +151,7 @@ void current_time_string (std::string & result)
 }
 
 
+/*
 class ReadFileLineByLine
 {
   private:
@@ -187,6 +188,7 @@ class ReadFileLineByLine
     }
 
 };
+*/
 
 
 #endif
