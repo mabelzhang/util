@@ -34,6 +34,8 @@ class RayTracer
   private:
 
     pcl::octree::OctreePointCloudSearch <pcl::PointXYZ>::Ptr octree_;
+    pcl::octree::OctreePointCloud <pcl::PointXYZ>::AlignedPointTVector
+      voxels_;
 
     bool vis_;
     ros::NodeHandle * nh_;
@@ -63,6 +65,8 @@ class RayTracer
       octree_ -> setInputCloud (input_cloud);
       octree_ -> addPointsFromInputCloud ();
 
+      octree_ -> getOccupiedVoxelCenters (voxels_);
+
       if (vis_)
       {
         // This uses a publisher of different type (pcl::PointCloud), so no
@@ -70,25 +74,22 @@ class RayTracer
         publish_cloud (input_cloud, frame_id_, "cloud", *nh_);
 
         // Visualize voxels
-        pcl::octree::OctreePointCloud <pcl::PointXYZ>::AlignedPointTVector
-          voxels;
-        octree_ -> getOccupiedVoxelCenters (voxels);
-        printf ("Number of voxels: %ld\n", voxels.size ());
+        printf ("Number of voxels: %ld\n", voxels_.size ());
 
         visualization_msgs::Marker marker_vx;
         create_marker (visualization_msgs::Marker::CUBE_LIST, frame_id_, 0,
           0, 0, 0, 0.8, 0.8, 0.8, 0.5, resolution, resolution, resolution,
           marker_vx, "voxel", 1, 0, 0, 0, 0);
 
-        for (int i = 0; i < voxels.size (); i ++)
+        for (int i = 0; i < voxels_.size (); i ++)
         {
-          //printf ("Voxel: %g %g %g\n", voxels.at (i).x, voxels.at (i).y,
-          //  voxels.at (i).z);
+          //printf ("Voxel: %g %g %g\n", voxels_.at (i).x, voxels_.at (i).y,
+          //  voxels_.at (i).z);
 
            geometry_msgs::Point pt;
-           pt.x = voxels.at (i).x;
-           pt.y = voxels.at (i).y;
-           pt.z = voxels.at (i).z;
+           pt.x = voxels_.at (i).x;
+           pt.y = voxels_.at (i).y;
+           pt.z = voxels_.at (i).z;
            marker_vx.points.push_back (pt);
         }
         vis_pub_.publish (marker_vx);
@@ -98,6 +99,17 @@ class RayTracer
 
     ~RayTracer ()
     {
+    }
+
+    size_t get_n_voxels ()
+    {
+      return voxels_.size ();
+    }
+
+    void get_voxel (int i, pcl::PointXYZ & pt)
+    {
+      // Call copy ctor
+      pt = pcl::PointXYZ (voxels_.at (i));
     }
  
     // Cast a ray into the point cloud. Test whether the ray goes through the
