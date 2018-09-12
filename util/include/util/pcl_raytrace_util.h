@@ -42,6 +42,8 @@ class RayTracer
     std::string frame_id_;
     ros::Publisher vis_pub_;
 
+    float resolution_;
+
 
   public:
 
@@ -54,6 +56,7 @@ class RayTracer
       vis_ = vis;
       nh_ = nh;
       frame_id_ = frame_id;
+      resolution_ = resolution;
 
       // Instantiate this early, else will not be created in time to publish
       //   the first markers in this function below.
@@ -78,7 +81,7 @@ class RayTracer
 
         visualization_msgs::Marker marker_vx;
         create_marker (visualization_msgs::Marker::CUBE_LIST, frame_id_, 0,
-          0, 0, 0, 0.8, 0.8, 0.8, 0.5, resolution, resolution, resolution,
+          0, 0, 0, 0.8, 0.8, 0.8, 0.5, resolution_, resolution_, resolution_,
           marker_vx, "voxel", 1, 0, 0, 0, 0);
 
         for (int i = 0; i < voxels_.size (); i ++)
@@ -86,11 +89,11 @@ class RayTracer
           //printf ("Voxel: %g %g %g\n", voxels_.at (i).x, voxels_.at (i).y,
           //  voxels_.at (i).z);
 
-           geometry_msgs::Point pt;
-           pt.x = voxels_.at (i).x;
-           pt.y = voxels_.at (i).y;
-           pt.z = voxels_.at (i).z;
-           marker_vx.points.push_back (pt);
+          geometry_msgs::Point pt;
+          pt.x = voxels_.at (i).x;
+          pt.y = voxels_.at (i).y;
+          pt.z = voxels_.at (i).z;
+          marker_vx.points.push_back (pt);
         }
         vis_pub_.publish (marker_vx);
         ros::Rate (4).sleep ();
@@ -138,6 +141,7 @@ class RayTracer
       // Ray trace. Find centers of voxels that the ray intersects
       octree_ -> getIntersectedVoxelCenters (origin, endpt - origin,
         vx_centers);
+      fprintf (stderr, "%ld voxels intersected by ray: ", vx_centers.size ());
 
 
       // Test occlusion of the given point, by the point in point cloud
@@ -176,7 +180,19 @@ class RayTracer
       //   occluded by the cloud.
       bool occluded = false;
       if ((proj_vxs.array () < proj_endpt).count () > 0)
+      {
         occluded = true;
+        std::cerr << "Voxels occluding endpoint of ray: " << std::endl;
+        for (int i = 0; i < proj_vxs.size (); i ++)
+        {
+          if (proj_vxs (i) < proj_endpt)
+          {
+            fprintf (stderr, "%g %g %g (distance %g)\n",
+              vx_centers_eg (i, 0), vx_centers_eg (i, 1), vx_centers_eg (i, 2),
+              proj_vxs (i));
+          }
+        }
+      }
       else
         occluded = false;
 
@@ -225,9 +241,35 @@ class RayTracer
         marker_ray.points.push_back (p2);
 
 
+        // Intersected voxel
+        visualization_msgs::Marker marker_vx;
+        create_marker (visualization_msgs::Marker::CUBE_LIST, frame_id_, 0,
+          0, 0, 0, 0, 0, 0, 0, resolution_, resolution_, resolution_,
+          marker_vx, "voxel_intersected", 1, 0, 0, 0, 0);
+
+        for (int i = 0; i < vx_centers.size (); i ++)
+        {
+          geometry_msgs::Point pt;
+          pt.x = vx_centers.at (i).x;
+          pt.y = vx_centers.at (i).y;
+          pt.z = vx_centers.at (i).z;
+          marker_vx.points.push_back (pt);
+
+          std_msgs::ColorRGBA color;
+          // Red, occluded
+          if (proj_vxs (i) < proj_endpt)
+            color.r = 1.0;
+          // Green, ray through free space
+          else
+            color.g = 1.0;
+          color.a = 0.5;
+          marker_vx.colors.push_back (color);
+        }
+
         // Publish Markers
         for (int i = 0; i < 5; i ++)
         {
+          vis_pub_.publish (marker_vx);
           vis_pub_.publish (marker_ray);
           ros::Rate (10).sleep ();
         }
