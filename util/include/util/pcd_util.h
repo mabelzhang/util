@@ -48,6 +48,7 @@ bool save_cloud_file (const std::string & file_name,
 // Preprocessing
 void rescale_cloud (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   float factor);
+void flip_z (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p);
 void discard_beyond_plane (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   Eigen::Vector3f & n, const Eigen::Vector3f & n_start,
   const std::string frame_id, ros::Publisher & vis_pub);
@@ -188,6 +189,20 @@ void rescale_cloud (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   cloud_p -> getMatrixXfMap ().block (0, 0, 3, cloud_p -> size ()) *= factor;
 
   fprintf (stderr, "Rescaled cloud by %g\n", factor);
+}
+
+// Flip z component of points to -z.
+// Useful for cameras that face -z, to flip recorded point clouds to +z.
+void flip_z (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p)
+{
+  // Block is 1 x nPts, the z row of matrix
+  //   MatrixXf is 3 x nPts, or 4 x nPts if recorded from xtion
+  // Don't save getMatrixXfMap to a local var! It seems to be a temporary
+  //   pointer, changes to the Eigen::MatrixXf are only local, they don't
+  //   get saved to the pcl::PointCloud object!
+  cloud_p -> getMatrixXfMap ().block (2, 0, 1, cloud_p -> size()) *= -1;
+
+  fprintf (stderr, "Flipped cloud z to -z\n");
 }
 
 
