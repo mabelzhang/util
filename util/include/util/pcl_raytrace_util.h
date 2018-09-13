@@ -77,7 +77,7 @@ class RayTracer
         publish_cloud (input_cloud, frame_id_, "cloud", *nh_);
 
         // Visualize voxels
-        printf ("Number of voxels: %ld\n", voxels_.size ());
+        fprintf (stderr, "Number of voxels: %ld\n", voxels_.size ());
 
         visualization_msgs::Marker marker_vx;
         create_marker (visualization_msgs::Marker::CUBE_LIST, frame_id_, 0,
@@ -86,8 +86,8 @@ class RayTracer
 
         for (int i = 0; i < voxels_.size (); i ++)
         {
-          //printf ("Voxel: %g %g %g\n", voxels_.at (i).x, voxels_.at (i).y,
-          //  voxels_.at (i).z);
+          //fprintf (stderr, "Voxel: %g %g %g\n", voxels_.at (i).x,
+          //  voxels_.at (i).y, voxels_.at (i).z);
 
           geometry_msgs::Point pt;
           pt.x = voxels_.at (i).x;
@@ -141,7 +141,7 @@ class RayTracer
       // Ray trace. Find centers of voxels that the ray intersects
       octree_ -> getIntersectedVoxelCenters (origin, endpt - origin,
         vx_centers);
-      fprintf (stderr, "%ld voxels intersected by ray: ", vx_centers.size ());
+      fprintf (stderr, "%ld voxels intersected by ray: \n", vx_centers.size ());
 
 
       // Test occlusion of the given point, by the point in point cloud
@@ -179,7 +179,8 @@ class RayTracer
       //   given point is behind at least one point in the cloud, it is
       //   occluded by the cloud.
       bool occluded = false;
-      if ((proj_vxs.array () < proj_endpt).count () > 0)
+      if ((proj_vxs.array () < proj_endpt).any ())
+      //if ((proj_vxs.array () < proj_endpt).count () > 0)
       {
         occluded = true;
         std::cerr << "Voxels occluding endpoint of ray: " << std::endl;
