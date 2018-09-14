@@ -2,16 +2,15 @@
 // 12 Sep 2018
 //
 // Convenience functions for Eigen.
-// NOT TESTED. NOT USED after written.
+// NOT TESTED. NOT USED after written. Compiles.
 //
 
 #include <Eigen/Core>
 
-// Ref: https://stackoverflow.com/questions/17036818/initialise-eigenvector-with-stdvector/17037695
+// Ref Pengyao answer: https://stackoverflow.com/questions/17036818/initialise-eigenvector-with-stdvector/17037695
 void convert_vector_to_Eigen (std::vector <int> & vec, Eigen::VectorXi & eig)
 {
-  // Use built-in constructor
-  eig = Eigen::VectorXi (vec.data ());
+  eig = Eigen::Map <Eigen::VectorXi> (&vec [0], vec.size ());
 }
 
 // Ref https://stackoverflow.com/questions/26094379/typecasting-eigenvectorxd-to-stdvector

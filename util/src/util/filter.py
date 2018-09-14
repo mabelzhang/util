@@ -3,7 +3,9 @@
 # Mabel Zhang
 # 13 Sep 2018
 #
-#
+# Simple filters for creating blobbed heat maps from images with sparse
+#   non-zero pixels.
+# Copied from blob_kernel.py.
 #
 
 import numpy as np
