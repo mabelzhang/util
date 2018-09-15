@@ -49,6 +49,8 @@ class RayTracer
 
     // Parameters:
     //   resolution: size of leaf voxels, in meters.
+    //   vis: Visualize in RViz. This slows down runtime considerably, only use
+    //     for debugging! Set to false for real run.
     RayTracer (pcl::PointCloud <pcl::PointXYZ>::Ptr & input_cloud,
       float resolution, bool vis=false, ros::NodeHandle * nh=NULL,
       std::string frame_id="/world")
@@ -141,7 +143,7 @@ class RayTracer
       // Ray trace. Find centers of voxels that the ray intersects
       octree_ -> getIntersectedVoxelCenters (origin, endpt - origin,
         vx_centers);
-      fprintf (stderr, "%ld voxels intersected by ray: \n", vx_centers.size ());
+      //fprintf (stderr, "%ld voxels intersected by ray: \n", vx_centers.size ());
 
 
       // Test occlusion of the given point, by the point in point cloud
@@ -183,6 +185,8 @@ class RayTracer
       //if ((proj_vxs.array () < proj_endpt).count () > 0)
       {
         occluded = true;
+
+        /* Debug printout
         std::cerr << "Voxels occluding endpoint of ray: " << std::endl;
         for (int i = 0; i < proj_vxs.size (); i ++)
         {
@@ -193,6 +197,7 @@ class RayTracer
               proj_vxs (i));
           }
         }
+        */
       }
       else
         occluded = false;
