@@ -49,6 +49,7 @@ bool save_cloud_file (const std::string & file_name,
 void rescale_cloud (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   float factor);
 void flip_z (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p);
+// Plane segmentation
 void discard_beyond_plane (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   Eigen::Vector3f & n, const Eigen::Vector3f & n_start,
   const std::string frame_id, ros::Publisher & vis_pub);
@@ -58,6 +59,7 @@ void segment_out_table (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_ptr,
   pcl::ModelCoefficients::Ptr & coefficients,
   const std::string frame_id, ros::NodeHandle & nh, bool negative=true,
   bool publish=true);
+// Set operation NOT
 void negate_indices (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_ptr,
   pcl::PointIndices::Ptr & indices_in, pcl::PointIndices::Ptr & indices_out);
 void negate_indices (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_ptr,
