@@ -25,13 +25,19 @@ import numpy as np
 #   lng: longitude, range (-pi, pi). Scalar or numpy vector same size as lat
 #   lat: latitude, range (-pi/2, pi/2) Scalar or numpy vector same size as lng
 # Returns a scalar if lat and lng are scalars, or 4 x n numpy array.
-def quaternion_from_spherical (lng, lat):
+def quaternion_from_spherical (lng, lat, qwFirst=False):
 
   ct = np.cos (lat * 0.5)
   cp = np.cos (lng * 0.5)
   st = np.sin (lat * 0.5)
   sp = np.sin (lng * 0.5)
-  quat = np.array ([cp*ct, -sp*st, st*cp, sp*ct])
+
+  if qwFirst:
+    # (w, x, y, z)
+    quat = np.array ([sp*ct, cp*ct, -sp*st, st*cp])
+  else:
+    # (x, y, z, w)
+    quat = np.array ([cp*ct, -sp*st, st*cp, sp*ct])
 
   return quat
 
@@ -54,22 +60,23 @@ def position_from_spherical (lng, lat):
 
 
 # Return 4-elt numpy array
-def get_rand_pose ():
+# Default longitude range (-180, 180), latitude range (-90, 90)
+def get_rand_pose (lng_range=(-np.pi, np.pi),
+  lat_range=(-0.5*np.pi, 0.5*np.pi), qwFirst=False):
 
-  # Longitude range (-180, 180)
-  lng = np.random.rand () * 2 * np.pi
-  lng -= np.pi
-  # Normally, latitude range (-90, 90). Truncate to (0, 90), so it is always
-  #   above horizon, `.` tabletop
-  lat = np.random.rand () * 0.5 * np.pi
+  lng = np.random.rand () * (lng_range[1] - lng_range[0])
+  lng += lng_range[0]
+
+  lat = np.random.rand () * (lat_range[1] - lat_range[0])
+  lat += lat_range[0]
 
   # Make a quaternion out of lng, lat
   return (position_from_spherical (lng, lat),
-    quaternion_from_spherical (lng, lat))
+    quaternion_from_spherical (lng, lat, qwFirst))
 
 
 # Returns n x 4 NumPy array
-def get_ordered_pose ():
+def get_ordered_pose (qwFirst=False):
 
   nLongs = 36
   nLats = 9
@@ -97,5 +104,5 @@ def get_ordered_pose ():
   # Subtract by half the range for quaternion, to stay in range of function.
   #   This produces the same plot for both position and quaternion.
   return (position_from_spherical (lng, lat),
-    quaternion_from_spherical (lng-np.pi, lat-(0.5*np.pi)))
+    quaternion_from_spherical (lng-np.pi, lat-(0.5*np.pi), qwFirst))
 
