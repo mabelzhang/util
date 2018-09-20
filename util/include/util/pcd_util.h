@@ -49,6 +49,7 @@ bool save_cloud_file (const std::string & file_name,
 void rescale_cloud (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   float factor);
 void flip_z (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p);
+void flip_yz (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p);
 // Plane segmentation
 void discard_beyond_plane (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   Eigen::Vector3f & n, const Eigen::Vector3f & n_start,
@@ -205,6 +206,25 @@ void flip_z (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p)
   cloud_p -> getMatrixXfMap ().block (2, 0, 1, cloud_p -> size()) *= -1;
 
   fprintf (stderr, "Flipped cloud z to -z\n");
+}
+
+// Useful for cameras in computer graphics convention (x to the right, y up,
+//   z pointing out of image. Image origin at lower-left), which is rotated
+//   180 degrees wrt x-axis from robotics convention (x to the right, y down,
+//   z poiniting outward from camera, into image. Image origin at upper-left).
+void flip_yz (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p)
+{
+  // Block is 1 x nPts, the z row of matrix
+  //   MatrixXf is 3 x nPts, or 4 x nPts if recorded from xtion
+  // Don't save getMatrixXfMap to a local var! It seems to be a temporary
+  //   pointer, changes to the Eigen::MatrixXf are only local, they don't
+  //   get saved to the pcl::PointCloud object!
+  cloud_p -> getMatrixXfMap ().block (2, 0, 1, cloud_p -> size()) *= -1;
+
+  // Block is 1 x nPts, the y row of matrix
+  cloud_p -> getMatrixXfMap ().block (1, 0, 1, cloud_p -> size()) *= -1;
+
+  fprintf (stderr, "Flipped cloud y to -y, z to -z, to correct for camera frame that has z pointing behind camera.\n");
 }
 
 
