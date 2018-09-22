@@ -16,8 +16,31 @@
 import numpy as np
 
 
+# lng, lat: Scalars
+# Returns 4 x 4 rotation matrix
+# Ref images from: https://stackoverflow.com/questions/5437865/longitude-latitude-to-quaternion
+def spherical_matrix (lng, lat):
+
+  # Fix z to be pointing up, then longitude is a rotation wrt z
+  Rz = np.array ([[np.cos (lng), -np.sin (lng), 0, 0],
+                  [np.sin (lng),  np.cos (lng), 0, 0],
+                  [0, 0, 1, 0],
+                  [0, 0, 0, 1]])
+
+  # Lat is a rotation wrt either x or y, pick one
+  # Rotation wrt y
+  Ry = np.array ([[np.cos (lat), 0, np.sin (lat), 0],
+                  [0, 1, 0, 0],
+                  [-np.sin (lat), 0, np.cos (lat), 0],
+                  [0, 0, 0, 1]])
+
+  R = np.dot (Ry, Rz)
+
+  return R
+
+
 # Convert spherical coordinates to quaternion.
-# NOTE the ranges here is different from those passed to
+# NOTE the parameter ranges here are different from those passed to
 #   position_from_spherical()!
 # Translated from https://github.com/moble/quaternion/blob/306630d69f382827ef097357ca6ee057a42c2103/quaternion.c#L19
 #   https://stackoverflow.com/questions/5437865/longitude-latitude-to-quaternion
@@ -34,10 +57,10 @@ def quaternion_from_spherical (lng, lat, qwFirst=False):
 
   if qwFirst:
     # (w, x, y, z)
-    quat = np.array ([sp*ct, cp*ct, -sp*st, st*cp])
+    quat = np.array ([cp*ct, -sp*st, st*cp, sp*ct])
   else:
     # (x, y, z, w)
-    quat = np.array ([cp*ct, -sp*st, st*cp, sp*ct])
+    quat = np.array ([sp*ct, cp*ct, -sp*st, st*cp])
 
   return quat
 
@@ -59,16 +82,23 @@ def position_from_spherical (lng, lat):
   return np.array ([x, y, z])
 
 
+# Conversion to XYZ Euler (not coded):
+# Spherical coordinates has z-axis fixed pointing up; longitude is wrt z,
+#   followed by latitude wrt y or x. So will need to use a Euler convention
+#   that rotates wrt z first, then y, and set the remaining axis (x) to zero.
+#   https://stackoverflow.com/questions/5437865/longitude-latitude-to-quaternion
+def euler_from_spherical (lng, lat):
+
+  return (0, lat, lng)
+
+
 # Return 4-elt numpy array
 # Default longitude range (-180, 180), latitude range (-90, 90)
 def get_rand_pose (lng_range=(-np.pi, np.pi),
   lat_range=(-0.5*np.pi, 0.5*np.pi), qwFirst=False):
 
-  lng = np.random.rand () * (lng_range[1] - lng_range[0])
-  lng += lng_range[0]
-
-  lat = np.random.rand () * (lat_range[1] - lat_range[0])
-  lat += lat_range[0]
+  lng = lng_range[0] + np.random.rand () * (lng_range[1] - lng_range[0])
+  lat = lat_range[0] + np.random.rand () * (lat_range[1] - lat_range[0])
 
   # Make a quaternion out of lng, lat
   return (position_from_spherical (lng, lat),
