@@ -133,6 +133,15 @@ void splitext (const std::string & path, std::vector <std::string> & exts)
   exts.push_back (path.substr (found + 1));
 }
 
+void replace_ext (const std::string & in, const std::string & new_ext,
+  std::string & out)
+{
+  // API http://www.cplusplus.com/reference/string/string/find_last_of/
+  std::size_t found = in.find_last_of (".");
+
+  out = in.substr (0, found) + new_ext;
+}
+
 // TODO: Not tested yet
 // Returns formatted date-time string in param.
 void current_time_string (std::string & result)
