@@ -32,7 +32,7 @@ void create_dir_if_nonexist (const std::string filepath)
 {
   // Create output directory if it doesn't exist yet
   // Ref: http://stackoverflow.com/questions/9235679/create-a-directory-if-it-doesnt-exist
-  // Extract directory name from fil path
+  // Extract directory name from file path
   boost::filesystem::path filepath_bst (filepath);
   // Ref: http://stackoverflow.com/questions/3071665/getting-a-directory-name-from-a-filename
   filepath_bst.remove_filename ();
@@ -129,8 +129,11 @@ void splitext (const std::string & path, std::vector <std::string> & exts)
   // API http://www.cplusplus.com/reference/string/string/find_last_of/
   std::size_t found = path.find_last_of (".");
 
-  exts.push_back (path.substr (0, found));
-  exts.push_back (path.substr (found + 1));
+  if (found != -1)
+  {
+    exts.push_back (path.substr (0, found));
+    exts.push_back (path.substr (found));
+  }
 }
 
 void replace_ext (const std::string & in, const std::string & new_ext,
