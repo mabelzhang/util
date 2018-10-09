@@ -35,7 +35,9 @@ M load_csv_to_Eigen (const std::string & path)
   indata.open (path.c_str ());
 
   std::string line;
-  std::vector<double> values;
+  // If double, use stod(). If float, use stof().
+  //   This should be determined by type M's data size, 8 for double, 4 float.
+  std::vector<float> values;
   uint rows = 0;
 
   while (std::getline (indata, line))
@@ -47,7 +49,7 @@ M load_csv_to_Eigen (const std::string & path)
     while (std::getline (lineStream, cell, ','))
     {
       // Convert string to double. Requires c++11
-      values.push_back (std::stod (cell));
+      values.push_back (std::stof (cell));
     }
     ++rows;
   }
@@ -56,5 +58,26 @@ M load_csv_to_Eigen (const std::string & path)
   return Eigen::Map <const Eigen::Matrix <typename M::Scalar,
     M::RowsAtCompileTime, M::ColsAtCompileTime, Eigen::RowMajor>> (
     values.data (), rows, values.size () / rows);
+}
+
+// Append a row of 1s at bottom of matrix M
+void append_homogeneous_row (Eigen::MatrixXf & M, Eigen::MatrixXf & M_h)
+{
+  Eigen::MatrixXf one_row = Eigen::MatrixXf::Ones (1, M.cols ());
+
+  // Ref https://stackoverflow.com/questions/21496157/eigen-how-to-concatenate-matrix-along-a-specific-dimension
+  M_h = Eigen::MatrixXf (M.rows () + 1, M.cols ());
+  M_h << M,
+    one_row;
+}
+
+// Append a column of 1s at right of matrix M
+void append_homogeneous_col (Eigen::MatrixXf & M, Eigen::MatrixXf & M_h)
+{
+  Eigen::MatrixXf one_col = Eigen::MatrixXf::Ones (M.rows (), 1);
+
+  // Ref https://stackoverflow.com/questions/21496157/eigen-how-to-concatenate-matrix-along-a-specific-dimension
+  M_h = Eigen::MatrixXf (M.rows (), M.cols () + 1);
+  M_h << M, one_col;
 }
 
