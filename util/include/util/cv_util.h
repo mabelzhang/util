@@ -14,7 +14,7 @@
 //   pts: 3 x n. Each column is (x y z) coordinate of a point in 3D.
 //   K: 3 x 3 camera intrinsics matrix.
 //   uv: 3 x n. Return value. 2D image coordinates in the top two rows.
-void project_3d_to_2d (Eigen::MatrixXf & pts, Eigen::MatrixXf & K,
+void project_3d_pts_to_2d (Eigen::MatrixXf & pts, Eigen::MatrixXf & K,
   Eigen::MatrixXi & uv)
 {
   uv = (K * pts).array ().round ().cast <int> ();
@@ -27,9 +27,16 @@ void project_3d_to_2d (Eigen::MatrixXf & pts, Eigen::MatrixXf & K,
 //     P = [ 0  fy' cy' Ty]
 //         [ 0   0   1   0]
 //   uv: 2 x n. Return value. 2D image coordinates in the top two rows.
-void project_3d_to_2d_homo (Eigen::MatrixXf & pts, Eigen::MatrixXf & P,
+void project_3d_pts_to_2d_homo (Eigen::MatrixXf & pts, Eigen::MatrixXf & P,
   Eigen::MatrixXi & uv)
 {
+  // Sanity check
+  if (pts.cols () == 0)
+  {
+    uv = Eigen::MatrixXi (2, 0);
+    return;
+  }
+
   // Make matrices homogeneous
   // Concatenate a row of 1s to bottom of matrix, using comma operator
   //   Ref: https://stackoverflow.com/questions/21496157/eigen-how-to-concatenate-matrix-along-a-specific-dimension
