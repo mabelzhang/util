@@ -89,7 +89,17 @@ def position_from_spherical (lng, lat):
 #   https://stackoverflow.com/questions/5437865/longitude-latitude-to-quaternion
 def euler_from_spherical (lng, lat):
 
-  return (0, lat, lng)
+  #return (0, lat, lng)
+  return None
+
+
+def get_rand_position (lng_range=(-np.pi, np.pi),
+  lat_range=(-0.5*np.pi, 0.5*np.pi)):
+
+  lng = lng_range[0] + np.random.rand () * (lng_range[1] - lng_range[0])
+  lat = lat_range[0] + np.random.rand () * (lat_range[1] - lat_range[0])
+
+  return (position_from_spherical (lng, lat))
 
 
 # Return 4-elt numpy array
@@ -106,19 +116,22 @@ def get_rand_pose (lng_range=(-np.pi, np.pi),
 
 
 # Returns n x 4 NumPy array
-def get_ordered_pose (qwFirst=False):
+def get_ordered_pose (lng_range=(0, 2 * np.pi), lat_range=(0, np.pi),
+  qwFirst=False):
 
   nLongs = 36
   nLats = 9
 
   # nLongs x nLats
   # Full longitude range (-180, 180)
-  lng = np.tile (np.array (np.linspace (0, 2 * np.pi, nLongs)).reshape (nLongs, 1), (1, nLats))
+  lng = np.tile (np.array (np.linspace (lng_range[0], lng_range[1], nLongs))
+    .reshape (nLongs, 1), (1, nLats))
   # Remove last row, `.` 0  == 2 * np.pi, duplicate points
   lng = lng [0:lng.shape[0]-1, :]
   #print (lng)
   # Full latitude range (-90, 90)
-  lat = np.tile (np.array (np.linspace (0, np.pi, nLats)).reshape (1, nLats), (nLongs-1, 1))
+  lat = np.tile (np.array (np.linspace (lat_range[0], lat_range[1], nLats))
+    .reshape (1, nLats), (nLongs-1, 1))
   #print (lat)
 
   lng = lng.flatten ()

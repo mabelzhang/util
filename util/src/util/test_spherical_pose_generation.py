@@ -23,7 +23,14 @@ from tf_transformations import quaternion_matrix
 
 def main ():
 
-  poses = get_ordered_pose ()
+  # Full sphere
+  #poses = get_ordered_pose (qwFirst=True)
+  #out_name = 'test_spherical_pose_generation_full'
+
+  # Top hemisphere
+  poses = get_ordered_pose (lat_range=(0, 0.5 * np.pi), qwFirst=True)
+  out_name = 'test_spherical_pose_generation_top'
+
   # 3 x n
   pos = poses [0]
   # 4 x n
@@ -56,14 +63,22 @@ def main ():
 
 
   # Ref https://matplotlib.org/examples/mplot3d/quiver3d_demo.html
-  # pivot default is 'tip', regardless of what API says. Arrowheads end at
-  #   XYZ.
-  #ax.quiver (XYZ[0, :], XYZ[1, :], XYZ[2, :], UVW[0, :], UVW[1, :], UVW[2, :],
-  #  color='orange', length=0.05, arrow_length_ratio=0.1, pivot='tail')
+  # First three xyzs are start point, last three are vector.
+  # pivot specifies the part of the arrow that is at the grid point, 1st xyzs
+  #   passed in. Arrow rotates about this point. Default is 'tip', regardless
+  #   of what API says. Arrowheads end at first set of xyzs passed in. Other
+  #   option is 'tail' or 'middle'.
+  ax.quiver (
+    UVW[0, :], UVW[1, :], UVW[2, :],
+    -UVW[0, :], -UVW[1, :], -UVW[2, :],
+    color='orange', length=0.4, arrow_length_ratio=0.5, pivot='tail')
   ax.scatter (UVW[0, :], UVW[1, :], UVW[2, :], c='orange')
 
   ax.set_title ('By quaternion only')
   ax.set_aspect (1)
+  ax.set_xlim (-1, 1)
+  ax.set_ylim (-1, 1)
+  ax.set_zlim (-1, 1)
 
 
 
@@ -76,6 +91,9 @@ def main ():
 
   ax.set_title ('By position only')
   ax.set_aspect (1)
+  ax.set_xlim (-1, 1)
+  ax.set_ylim (-1, 1)
+  ax.set_zlim (-1, 1)
 
 
   #####
@@ -96,9 +114,22 @@ def main ():
 
   ax.set_title ('Overlay quaternion and position')
   ax.set_aspect (1)
+  ax.set_xlim (-1, 1)
+  ax.set_ylim (-1, 1)
+  ax.set_zlim (-1, 1)
 
 
   fig.tight_layout ()
+
+  #'''
+  # Save eps
+  fig.savefig (out_name + '.png')
+  print ('Written plot to %s.png' % out_name)
+  fig.savefig (out_name + '.eps')
+  print ('Written plot to %s.eps' % out_name)
+  # Save png
+  #'''
+
   plt.show ()
 
 
