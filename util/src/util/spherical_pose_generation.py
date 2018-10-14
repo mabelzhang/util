@@ -16,7 +16,8 @@
 import numpy as np
 
 # Local
-from tf_transformations import rotation_matrix, quaternion_from_matrix
+from util.tf_transformations import rotation_matrix, quaternion_from_matrix, \
+  euler_from_matrix
 
 
 # lng, lat: Scalars
@@ -128,8 +129,12 @@ def get_rand_rotation (lng_range=(-np.pi, np.pi),
 #   and center of sphere.
 # Default long/lat range same as those for get_rand_position(), `.` orientation
 #   is calculated from position.
+# Parameters:
+#   from_vec: Source vector the rotation will be calculated from. Canonical
+#     reference vector is the x-vector, (1, 0, 0). But if calculating for a
+#     camera pose that has z pointing out of camera, use z-vector, (0, 0, 1).
 def get_rand_pose (lng_range=(-np.pi, np.pi),
-  lat_range=(-0.5*np.pi, 0.5*np.pi), qwFirst=False):
+  lat_range=(-0.5*np.pi, 0.5*np.pi), from_vec=[1,0,0], qwFirst=False):
 
   lng = lng_range[0] + np.random.rand () * (lng_range[1] - lng_range[0])
   lat = lat_range[0] + np.random.rand () * (lat_range[1] - lat_range[0])
@@ -140,8 +145,6 @@ def get_rand_pose (lng_range=(-np.pi, np.pi),
   # Center of sphere is at (0, 0, 0)
   # It should already be a unit vector, coming from spherical coord eqns
   orientation_vec = pos
-
-  from_vec = [1, 0, 0]
 
   # Dot product, a dot b = |a||b|cos(theta), theta = acos((a dot b) / (|a||b|)).
   #   |a| == |b| == 1 if a and b are unit vectors, as they are here.
@@ -155,6 +158,7 @@ def get_rand_pose (lng_range=(-np.pi, np.pi),
   # Find quaternion for the orientation vector, wrt default vector (1, 0, 0)
   # (w x y z)
   quat = quaternion_from_matrix (mat)
+  euler = euler_from_matrix (mat)
 
 
   # DEBUG: If rotation matrix correct, these two should be exactly the same
@@ -166,7 +170,7 @@ def get_rand_pose (lng_range=(-np.pi, np.pi),
     # (x y z w)
     quat = (quat[1], quat[2], quat[3], quat[0])
 
-  return pos, quat
+  return pos, quat, euler
 
 
 # Returns n x 4 NumPy array

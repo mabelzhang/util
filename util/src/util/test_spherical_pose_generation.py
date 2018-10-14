@@ -49,7 +49,7 @@ def test_rand_poses (n_poses, topOnly=False):
     lat_range = (0, np.pi)
 
   for i in range (n_poses):
-    pos [:, i], quats [:, i] = get_rand_pose (
+    pos [:, i], quats [:, i], _ = get_rand_pose (
       lat_range=lat_range, qwFirst=True)
 
   return pos, quats
