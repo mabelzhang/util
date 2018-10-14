@@ -16,25 +16,67 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # Local
-from spherical_pose_generation import get_ordered_pose
+from spherical_pose_generation import get_ordered_pose, get_rand_pose
 from tf_transformations import quaternion_matrix
 
 
 
-def main ():
+def test_ordered_poses (topOnly=False):
 
-  # Full sphere
-  #poses = get_ordered_pose (qwFirst=True)
-  #out_name = 'test_spherical_pose_generation_full'
-
-  # Top hemisphere
-  poses = get_ordered_pose (lat_range=(0, 0.5 * np.pi), qwFirst=True)
-  out_name = 'test_spherical_pose_generation_top'
+  if topOnly:
+    # Top hemisphere
+    poses = get_ordered_pose (lat_range=(0, 0.5 * np.pi), qwFirst=True)
+  else:
+    # Full sphere
+    poses = get_ordered_pose (qwFirst=True)
 
   # 3 x n
   pos = poses [0]
   # 4 x n
   quats = poses [1]
+
+  return pos, quats
+
+
+def test_rand_poses (n_poses, topOnly=False):
+
+  pos = np.zeros ((3, n_poses))
+  quats = np.zeros ((4, n_poses))
+
+  if topOnly:
+    lat_range = (0, 0.5*np.pi)
+  else:
+    lat_range = (0, np.pi)
+
+  for i in range (n_poses):
+    pos [:, i], quats [:, i] = get_rand_pose (
+      lat_range=lat_range, qwFirst=True)
+
+  return pos, quats
+
+
+
+def main ():
+
+  ORDERED = False
+  TOP_ONLY = False
+
+  if ORDERED:
+    pos, quats = test_ordered_poses (topOnly=TOP_ONLY)
+    if TOP_ONLY:
+      out_name = 'test_spherical_pose_generation_top'
+    else:
+      out_name = 'test_spherical_pose_generation_full'
+
+  else:
+    n_rand_pts = 100
+    pos, quats = test_rand_poses (n_rand_pts, topOnly=TOP_ONLY)
+
+    if TOP_ONLY:
+      out_name = 'test_spherical_pose_generation_rand_top'
+    else:
+      out_name = 'test_spherical_pose_generation_rand_full'
+
 
   #print quats.shape
   n_pts = quats.shape [1]
@@ -112,6 +154,11 @@ def main ():
   # Position
   ax.scatter (pos[0, :], pos[1, :], pos[2, :], c='red', alpha=0.5)
 
+  # Text label, for easier debugging of mismatches between positions and quats
+  for i in range (pos.shape [1]):
+    ax.text (UVW[0, i], UVW[1, i], UVW[2, i], str(i), color='orange')
+    ax.text (pos[0, i], pos[1, i], pos[2, i], str(i), color='red')
+
   ax.set_title ('Overlay quaternion and position')
   ax.set_aspect (1)
   ax.set_xlim (-1, 1)
@@ -121,16 +168,18 @@ def main ():
 
   fig.tight_layout ()
 
-  #'''
-  # Save eps
+  '''
+  # Save png
   fig.savefig (out_name + '.png')
   print ('Written plot to %s.png' % out_name)
+
+  # Save eps
   fig.savefig (out_name + '.eps')
   print ('Written plot to %s.eps' % out_name)
-  # Save png
-  #'''
+  '''
 
   plt.show ()
+
 
 
 if __name__ == '__main__':

@@ -15,6 +15,9 @@
 
 import numpy as np
 
+# Local
+from tf_transformations import rotation_matrix, quaternion_from_matrix
+
 
 # lng, lat: Scalars
 # Returns 4 x 4 rotation matrix
@@ -42,6 +45,8 @@ def spherical_matrix (lng, lat):
 # Convert spherical coordinates to quaternion.
 # NOTE the parameter ranges here are different from those passed to
 #   position_from_spherical()!
+# NOTE locations on unit sphere generated here do NOT correspond to those from
+#   position_from_spherical(). To get matching ones, use get_rand_pose().
 # Translated from https://github.com/moble/quaternion/blob/306630d69f382827ef097357ca6ee057a42c2103/quaternion.c#L19
 #   https://stackoverflow.com/questions/5437865/longitude-latitude-to-quaternion
 # Paramters:
@@ -68,6 +73,8 @@ def quaternion_from_spherical (lng, lat, qwFirst=False):
 # Convert spherical coordinates to Cartesian coordinates.
 # NOTE the ranges here is different from those passed to
 #   quaternion_from_spherical()!
+# NOTE locations on unit sphere generated here do NOT correspond to those from
+#   quaternion_from_spherical(). To get matching ones, use get_rand_pose().
 # Paramters:
 #   lng: longitude, range (0, 2*pi). Scalar or numpy vector same size as lat
 #   lat: latitude, range (0, pi) Scalar or numpy vector same size as lng
@@ -93,6 +100,8 @@ def euler_from_spherical (lng, lat):
   return None
 
 
+# Return 3-elt numpy array
+# Default longitude range (-180, 180), latitude range (-90, 90)
 def get_rand_position (lng_range=(-np.pi, np.pi),
   lat_range=(-0.5*np.pi, 0.5*np.pi)):
 
@@ -104,15 +113,60 @@ def get_rand_position (lng_range=(-np.pi, np.pi),
 
 # Return 4-elt numpy array
 # Default longitude range (-180, 180), latitude range (-90, 90)
-def get_rand_pose (lng_range=(-np.pi, np.pi),
+def get_rand_rotation (lng_range=(-np.pi, np.pi),
   lat_range=(-0.5*np.pi, 0.5*np.pi), qwFirst=False):
 
   lng = lng_range[0] + np.random.rand () * (lng_range[1] - lng_range[0])
   lat = lat_range[0] + np.random.rand () * (lat_range[1] - lat_range[0])
 
   # Make a quaternion out of lng, lat
-  return (position_from_spherical (lng, lat),
-    quaternion_from_spherical (lng, lat, qwFirst))
+  return (quaternion_from_spherical (lng, lat, qwFirst))
+
+
+# Get position and orientation with *MATCHING* location on unit sphere.
+#   Orientation is computed directly from position, by vector between position
+#   and center of sphere.
+# Default long/lat range same as those for get_rand_position(), `.` orientation
+#   is calculated from position.
+def get_rand_pose (lng_range=(-np.pi, np.pi),
+  lat_range=(-0.5*np.pi, 0.5*np.pi), qwFirst=False):
+
+  lng = lng_range[0] + np.random.rand () * (lng_range[1] - lng_range[0])
+  lat = lat_range[0] + np.random.rand () * (lat_range[1] - lat_range[0])
+
+  pos = position_from_spherical (lng, lat)
+
+
+  # Center of sphere is at (0, 0, 0)
+  # It should already be a unit vector, coming from spherical coord eqns
+  orientation_vec = pos
+
+  from_vec = [1, 0, 0]
+
+  # Dot product, a dot b = |a||b|cos(theta), theta = acos((a dot b) / (|a||b|)).
+  #   |a| == |b| == 1 if a and b are unit vectors, as they are here.
+  #   Then theta = acos (a dot b)
+  angle = np.arccos (np.dot (from_vec, orientation_vec))
+  # Vector perpendicular to both vecs, is the rotation axis
+  axis = np.cross (from_vec, orientation_vec)
+
+  mat = rotation_matrix (angle, axis)
+
+  # Find quaternion for the orientation vector, wrt default vector (1, 0, 0)
+  # (w x y z)
+  quat = quaternion_from_matrix (mat)
+
+
+  # DEBUG: If rotation matrix correct, these two should be exactly the same
+  #print (pos)
+  #print (np.dot (mat, from_vec + [0]))
+
+
+  if not qwFirst:
+    # (x y z w)
+    quat = (quat[1], quat[2], quat[3], quat[0])
+
+  return pos, quat
 
 
 # Returns n x 4 NumPy array
