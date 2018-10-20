@@ -167,8 +167,7 @@ class RayTracer
       // Return value is distance from starting point of ray. Positive means
       //   along ray, negative means in opposite direction of ray.
       Eigen::VectorXf proj_vxs;
-      project_pts_onto_line (origin, endpt, vx_centers_eg,
-        proj_vxs);
+      project_pts_onto_line (origin, endpt, vx_centers_eg, proj_vxs);
 
       // Distance of endpoint of ray from origin of ray
       float proj_endpt = (endpt - origin).norm ();
@@ -262,10 +261,10 @@ class RayTracer
           marker_vx.points.push_back (pt);
 
           std_msgs::ColorRGBA color;
-          // Red, occluded
+          // Red, ray is occluded by this voxel
           if (proj_vxs (i) < proj_endpt)
             color.r = 1.0;
-          // Green, ray through free space
+          // Green, ray does not reach this voxel
           else
             color.g = 1.0;
           color.a = 0.5;
