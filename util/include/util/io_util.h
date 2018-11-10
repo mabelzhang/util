@@ -51,7 +51,7 @@ void create_dir_if_nonexist (const std::string filepath)
 //   with only two arguments.
 // Parameters:
 //   parent, child: Two paths to concatenate together
-//   concat: Ret val
+//   concat: Ret val. concat should be != child, else there may be errors.
 void join_paths (const std::string parent, const std::string child,
   std::string & concat)
 {
@@ -64,7 +64,15 @@ void join_paths (const std::string parent, const std::string child,
   // Ref canonicalization:
   //   https://stackoverflow.com/questions/1746136/how-do-i-normalize-a-pathname-using-boostfilesystem
   //   https://stackoverflow.com/questions/12643880/get-absolute-path-with-boostfilesystempath
-  concat_bst = boost::filesystem::canonical (concat_bst);
+  try
+  {
+    concat_bst = boost::filesystem::canonical (concat_bst);
+  }
+  catch (boost::filesystem::filesystem_error e)
+  {
+    fprintf (stderr, "WARN in join_paths(): %s does not exist. Is this intentional (e.g. path name building for writing?)\n",
+      concat_bst.string ().c_str ());
+  }
 
   concat = concat_bst.string ();
 }
@@ -98,7 +106,15 @@ void join_paths (const std::vector <std::string> & subpaths,
   // Ref canonicalization:
   //   https://stackoverflow.com/questions/1746136/how-do-i-normalize-a-pathname-using-boostfilesystem
   //   https://stackoverflow.com/questions/12643880/get-absolute-path-with-boostfilesystempath
-  concat_bst = boost::filesystem::canonical (concat_bst);
+  try
+  {
+    concat_bst = boost::filesystem::canonical (concat_bst);
+  }
+  catch (boost::filesystem::filesystem_error e)
+  {
+    fprintf (stderr, "WARN in join_paths(): %s does not exist. Is this intentional (e.g. path name building for writing?)\n",
+      concat_bst.string ().c_str ());
+  }
 
   concat = concat_bst.string ();
 }
@@ -115,6 +131,7 @@ void dirname (const std::string & path, std::string & dir)
 }
 
 // Like python os.path.basename ()
+// Does not include extension of file
 void basename (const std::string & path, std::string & base)
 {
   boost::filesystem::path path_bst (path);

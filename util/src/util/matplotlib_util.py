@@ -113,6 +113,8 @@ def black_legend (legend, bg_color='black', fg_color='white'):
 #   item_idx: Index of current item to plot. This number is used to interpolate
 #     the colormap and get you the color for this item, given the total number
 #     of items you have.
+#     Can be a float. In that case it is interpreted as a fraction in [0, 1],
+#     seems like.
 #   n_items: Set higher numbers when have more things to plot!
 #   colormap_name: string from
 #     http://matplotlib.org/examples/color/colormaps_reference.html
