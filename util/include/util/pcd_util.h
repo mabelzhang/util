@@ -113,7 +113,8 @@ bool load_cloud_file (const std::string & cloud_name,
 {
   if (! boost::filesystem::exists (cloud_name))
   {
-    fprintf (stderr, "ERROR: File does not exist: %s\n", cloud_name.c_str ());
+    fprintf (stderr, "%sERROR: File does not exist: %s%s\n", FAIL,
+      cloud_name.c_str (), ENDC);
     return false;
   }
 
@@ -405,6 +406,9 @@ void discard_beyond_plane (pcl::PointCloud <pcl::PointXYZ>::Ptr & cloud_p,
   */
 
   // Mark points that contains nans and infs
+  // TODO: There is a pcl::removeNaNFromPointCloud() function, might change to
+  //   simply use that instead.
+  //   Ref: http://docs.pointclouds.org/trunk/group__filters.html
   Eigen::Matrix <bool, Eigen::Dynamic, 1> isfin;
   if (do_remove_nans)
   {

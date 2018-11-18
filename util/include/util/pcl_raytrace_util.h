@@ -23,6 +23,7 @@
 #include <util/lin_alg_util.h>  // project_pts_onto_line()
 #include <util/pcd_util.h>  // publish_cloud()
 #include <util/skeleton.h>  // create_marker()
+#include <util/ansi_colors.h>
 
 
 //#include <iostream>
@@ -48,6 +49,10 @@ class RayTracer
   public:
 
     // Parameters:
+    //   input_cloud: Point cloud to build octree from. Keeping this as member
+    //     variable `.` constructing octree is the biggest bottleneck. So
+    //     construct only once, then can rapidly trace many times by calling
+    //     member function, without reconstructing the octree every call.
     //   resolution: size of leaf voxels, in meters.
     //   vis: Visualize in RViz. This slows down runtime considerably, only use
     //     for debugging! Set to false for real run.
@@ -62,9 +67,21 @@ class RayTracer
 
       // Instantiate this early, else will not be created in time to publish
       //   the first markers in this function below.
-      vis_pub_ = nh_ -> advertise <visualization_msgs::Marker> (
-        "visualization_marker", 5);
+      if (vis_)
+      {
+        if (nh_ != NULL)
+        {
+          vis_pub_ = nh_ -> advertise <visualization_msgs::Marker> (
+            "visualization_marker", 5);
+        }
+        else
+        {
+          vis_ = false;
+          fprintf (stderr, "%sERROR in RayTracer(): vis_ == true but ROS node handle nh_ is not specified! Will set vis_ = false. You should pass in non-null ros::NodeHandle.\n%s", FAIL, ENDC);
+        }
+      }
 
+      // Pointer on heap
       octree_ = pcl::octree::OctreePointCloudSearch <pcl::PointXYZ>::Ptr (
         new pcl::octree::OctreePointCloudSearch <pcl::PointXYZ> (resolution));
       octree_ -> setInputCloud (input_cloud);
@@ -116,7 +133,7 @@ class RayTracer
       // Call copy ctor
       pt = pcl::PointXYZ (voxels_.at (i));
     }
- 
+
     // Cast a ray into the point cloud. Test whether the ray goes through the
     //   point cloud, or stop before reaching the point cloud; i.e. along the
     //   ray, test whether the endpoint of ray is occluded by any points in
@@ -135,14 +152,32 @@ class RayTracer
     // Returns true if point is behind intersection (i.e. point cloud occludes
     //   the given point. Else returns false (point is in front of, or at
     //   intersection; point cloud does not occlude the given point).
-    bool raytrace_occlusion_test (Eigen::Vector3f origin,
-      Eigen::Vector3f endpt)
+    bool raytrace_occlusion_test (
+      Eigen::Vector3f origin, Eigen::Vector3f endpt)
     {
       pcl::octree::OctreePointCloudSearch <pcl::PointXYZ>::
         AlignedPointTVector vx_centers;
       // Ray trace. Find centers of voxels that the ray intersects
+      // Ptr on heap
       octree_ -> getIntersectedVoxelCenters (origin, endpt - origin,
         vx_centers);
+
+
+      /*
+      // Putting point cloud on stack, passed into this fn instead of ctor
+      pcl::octree::OctreePointCloudSearch <pcl::PointXYZ> octree_ (resolution_);
+      octree_.setInputCloud (input_cloud);
+      octree_.addPointsFromInputCloud ();
+
+      //pcl::octree::OctreePointCloud <pcl::PointXYZ>::AlignedPointTVector
+      //  voxels_;
+      //octree_.getOccupiedVoxelCenters (voxels_);
+
+      octree_.getIntersectedVoxelCenters (origin, endpt - origin,
+        vx_centers);
+      */
+
+
       //fprintf (stderr, "%ld voxels intersected by ray: \n", vx_centers.size ());
 
 

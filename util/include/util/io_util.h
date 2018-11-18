@@ -53,7 +53,7 @@ void create_dir_if_nonexist (const std::string filepath)
 //   parent, child: Two paths to concatenate together
 //   concat: Ret val. concat should be != child, else there may be errors.
 void join_paths (const std::string parent, const std::string child,
-  std::string & concat)
+  std::string & concat) //, bool canonicalize=true)
 {
   // Ref: http://stackoverflow.com/questions/6297738/how-to-build-a-full-path-string-safely-from-separate-strings
   //   http://stackoverflow.com/questions/4179322/how-to-convert-boost-path-type-to-string
@@ -64,16 +64,20 @@ void join_paths (const std::string parent, const std::string child,
   // Ref canonicalization:
   //   https://stackoverflow.com/questions/1746136/how-do-i-normalize-a-pathname-using-boostfilesystem
   //   https://stackoverflow.com/questions/12643880/get-absolute-path-with-boostfilesystempath
-  try
-  {
-    concat_bst = boost::filesystem::canonical (concat_bst);
-  }
-  catch (boost::filesystem::filesystem_error e)
-  {
-    fprintf (stderr, "WARN in join_paths(): %s does not exist. Is this intentional (e.g. path name building for writing?)\n",
-      concat_bst.string ().c_str ());
-  }
-
+  //if (canonicalize)
+  //{
+    try
+    {
+      boost::filesystem::path tmp;
+      tmp = boost::filesystem::canonical (concat_bst);
+      concat_bst = tmp;
+    }
+    catch (boost::filesystem::filesystem_error e)
+    {
+      fprintf (stderr, "WARN in join_paths(): %s does not exist. Is there a string manipulation error or memory error that corrupted the string?\n",
+        concat_bst.string ().c_str ());
+    }
+  //}
   concat = concat_bst.string ();
 }
 
