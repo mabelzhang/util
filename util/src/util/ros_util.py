@@ -113,6 +113,25 @@ def matrix_from_7tuple (tq):
   return mat
 
 
+def _7tuple_from_matrix (mat):
+
+  tq = [0] * 7
+
+  # Last column
+  tq [0] = mat [0, 3]
+  tq [1] = mat [1, 3]
+  tq [2] = mat [2, 3]
+
+  quat = tf.transformations.quaternion_from_matrix (mat)
+  tq [3] = quat [0]
+  tq [4] = quat [1]
+  tq [5] = quat [2]
+  tq [6] = quat [3]
+
+  # (tx ty tz qx qy qz qw)
+  return tq
+
+
 # Package a geometry_msgs/Pose into geometry_msgs/PoseStamped
 def stamp_pose (pose, frame_id):
 
