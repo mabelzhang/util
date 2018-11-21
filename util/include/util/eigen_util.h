@@ -81,3 +81,41 @@ void append_homogeneous_col (Eigen::MatrixXf & M, Eigen::MatrixXf & M_h)
   M_h << M, one_col;
 }
 
+// C++ counter part to ../../src/util/ros_util.py same-name function
+// Parameters:
+//   tq: 1 x 7 vector, (tx ty tz qx qy qz qw)
+//   mat: Return value. 4 x 4 matrix representation of the pose
+void matrix_from_7tuple (Eigen::Matrix <float, 1, 7> & tq,
+  Eigen::Matrix4f & mat)
+{
+  mat (0, 3) = tq (0);
+  mat (1, 3) = tq (1);
+  mat (2, 3) = tq (2);
+
+  // (w, x, y, z)
+  // API https://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html
+  Eigen::Quaternionf q (tq(6), tq(3), tq(4), tq(5));
+  Eigen::Matrix3f q_mat = q.toRotationMatrix ();
+  mat.block <3, 3> (0, 0) = q_mat;
+}
+
+// C++ counter part to ../../src/util/ros_util.py same-name function
+// Parameters:
+//   tq: Return value, (tx ty tz qx qy qz qw)
+void _7tuple_from_matrix (Eigen::Matrix4f & mat,
+  Eigen::Matrix <float, 1, 7> & tq)
+{
+  // Translation, 4th column
+  tq (0) = mat (0, 3);
+  tq (1) = mat (1, 3);
+  tq (2) = mat (2, 3);
+
+  // Rotation, 3 x 3 upperleft block
+  Eigen::Quaternionf q (mat.block <3, 3> (0, 0));
+  tq (3) = q.x();
+  tq (4) = q.y();
+  tq (5) = q.z();
+  tq (6) = q.w();
+}
+
+
