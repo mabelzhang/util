@@ -263,18 +263,23 @@ def plot_colormap ():
 
 
 # Copied from triangle_sampling stats_hist_num_bins.py
+# Parameters:
+#   style: 'line' and 'bar' are implemented currently
+#   dots: Add large dots to the data points, in addition to the line graph.
 def plot_line (xdata, ydata, title, xlbl, ylbl, out_name, color, lbl,
-  dots=True, grid=True,
-  stdev=None, do_save=True):
+  style='line', dots=True, grid=True,
+  stdev=None, do_save=True, do_show=False, return_title_hdl=False):
 
   #####
   # Plot
   #####
 
   if dots:
-    plt.plot (xdata, ydata, 'o', markersize=5,
-      markeredgewidth=0, color=color)
-  hdl, = plt.plot (xdata, ydata, '-', linewidth=2, color=color, label=lbl)
+    plt.plot (xdata, ydata, 'o', markersize=5, markeredgewidth=0, color=color)
+  if style == 'line':
+    hdl, = plt.plot (xdata, ydata, '-', linewidth=2, color=color, label=lbl)
+  elif style == 'bar':
+    hdl = plt.bar (xdata, ydata, align='center', color=color, label=lbl)
 
   # Plot error bars
   #   http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
@@ -290,7 +295,7 @@ def plot_line (xdata, ydata, title, xlbl, ylbl, out_name, color, lbl,
     plt.grid (False)
 
   if title:
-    plt.title (title)
+    title_hdl = plt.title (title)
   plt.xlabel (xlbl)
   plt.ylabel (ylbl)
 
@@ -300,7 +305,8 @@ def plot_line (xdata, ydata, title, xlbl, ylbl, out_name, color, lbl,
     plt.savefig (out_name, bbox_inches='tight')
     print ('Plot saved to %s' % out_name)
 
-  #plt.show ()
+  if do_show:
+    plt.show ()
 
   # If you want legend, pass in a label for each thing you plot. Then legend
   #   will automatically show with just plt.legend().
@@ -308,7 +314,20 @@ def plot_line (xdata, ydata, title, xlbl, ylbl, out_name, color, lbl,
   # Ref: http://matplotlib.org/users/legend_guide.html
   #plt.legend (handles=[nn_hdl, svm_hdl], loc=0)
 
-  return hdl
+  if title != '' and return_title_hdl:
+    return hdl, title_hdl
+  else:
+    return hdl
+
+
+# Parameters:
+#   ax: Current axis can be obtained by plt.gca()
+#   rot_degs: Rotation in degrees. 'vertical' for 90.
+def mpl_diagonal_xticks (ax, xticks, xticklabels, rot_degs=45):
+
+  ax.set_xticks (xticks)
+  ax.set_xticklabels (xticklabels, rotation=rot_degs)
+
 
 
 # This function is for debugging. It is used for viewing, not for inputting
