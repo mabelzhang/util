@@ -24,19 +24,29 @@
 #include <ctime>
 
 
+// Creates a directory if it does not exist.
+// Ref: http://stackoverflow.com/questions/9235679/create-a-directory-if-it-doesnt-exist
 // Parameters:
-//   filename: A full path to a file (not a directory, I haven't tested that,
-//     not sure if it'll give self or parent directory!)
-//     If the parent directory of this file doesn't exist, then create it.
+//   filename: A full path to a file (with '.' in the basename) or a directory
+//     (without '.' in the basename). If file, if the parent directory of this
+//     file doesn't exist, then create it.
 void create_dir_if_nonexist (const std::string filepath)
 {
-  // Create output directory if it doesn't exist yet
-  // Ref: http://stackoverflow.com/questions/9235679/create-a-directory-if-it-doesnt-exist
-  // Extract directory name from file path
   boost::filesystem::path filepath_bst (filepath);
-  // Ref: http://stackoverflow.com/questions/3071665/getting-a-directory-name-from-a-filename
-  filepath_bst.remove_filename ();
 
+  // If path is a file, remove the basename, create the directory before it.
+  std::string base = boost::filesystem::basename (filepath_bst);
+  // If path is a file, assume there is '.' in base name
+  // Not using boost::filesystem::is_regular_file(), because file most likely
+  //   does not exist yet! That is why this function is being called to create
+  //   its parent directory!
+  if (base.find ('.') != std::string::npos)
+  {
+    // Extract directory name from file path
+    // Ref: http://stackoverflow.com/questions/3071665/getting-a-directory-name-from-a-filename
+    filepath_bst.remove_filename ();
+  }
+ 
   boost::filesystem::path sysdir (filepath_bst.string ().c_str ());
   if (boost::filesystem::create_directories (sysdir))
   {
@@ -53,7 +63,7 @@ void create_dir_if_nonexist (const std::string filepath)
 //   parent, child: Two paths to concatenate together
 //   concat: Ret val. concat should be != child, else there may be errors.
 void join_paths (const std::string parent, const std::string child,
-  std::string & concat) //, bool canonicalize=true)
+  std::string & concat, bool canonicalize=true)
 {
   // Ref: http://stackoverflow.com/questions/6297738/how-to-build-a-full-path-string-safely-from-separate-strings
   //   http://stackoverflow.com/questions/4179322/how-to-convert-boost-path-type-to-string
@@ -64,8 +74,8 @@ void join_paths (const std::string parent, const std::string child,
   // Ref canonicalization:
   //   https://stackoverflow.com/questions/1746136/how-do-i-normalize-a-pathname-using-boostfilesystem
   //   https://stackoverflow.com/questions/12643880/get-absolute-path-with-boostfilesystempath
-  //if (canonicalize)
-  //{
+  if (canonicalize)
+  {
     try
     {
       boost::filesystem::path tmp;
@@ -74,10 +84,14 @@ void join_paths (const std::string parent, const std::string child,
     }
     catch (boost::filesystem::filesystem_error e)
     {
-      fprintf (stderr, "WARN in join_paths(): %s does not exist. Is there a string manipulation error or memory error that corrupted the string?\n",
+      // Potential causes:
+      //   Path does not exist yet, it is constructed for a file to be created
+      //   A string manipulation error
+      //   A memory error that corrupted the string
+      fprintf (stderr, "WARN in join_paths(): %s does not exist.\n",
         concat_bst.string ().c_str ());
     }
-  //}
+  }
   concat = concat_bst.string ();
 }
 
