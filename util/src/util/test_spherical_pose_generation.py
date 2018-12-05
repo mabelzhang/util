@@ -18,6 +18,7 @@ from mpl_toolkits.mplot3d import Axes3D
 # Local
 from spherical_pose_generation import get_ordered_pose, get_rand_pose
 from tf_transformations import quaternion_matrix
+from util.matplotlib_util import black_background, black_3d_background
 
 
 
@@ -59,7 +60,7 @@ def test_rand_poses (n_poses, topOnly=False):
 def main ():
 
   ORDERED = False
-  TOP_ONLY = False
+  TOP_ONLY = True
 
   if ORDERED:
     pos, quats = test_ordered_poses (topOnly=TOP_ONLY)
@@ -177,6 +178,47 @@ def main ():
   fig.savefig (out_name + '.eps')
   print ('Written plot to %s.eps' % out_name)
   '''
+
+  plt.show ()
+
+
+
+  # Plot an individual image for thesis writing
+
+  fig2 = plt.figure ()
+  ax = fig2.add_subplot (111, projection='3d')
+
+  rgb = np.array ((252, 149,  11)) / 255.0
+
+  # Ref https://matplotlib.org/examples/mplot3d/quiver3d_demo.html
+  # First three xyzs are start point, last three are vector.
+  # pivot specifies the part of the arrow that is at the grid point, 1st xyzs
+  #   passed in. Arrow rotates about this point. Default is 'tip', regardless
+  #   of what API says. Arrowheads end at first set of xyzs passed in. Other
+  #   option is 'tail' or 'middle'.
+  ax.quiver (
+    UVW[0, :], UVW[1, :], UVW[2, :],
+    -UVW[0, :], -UVW[1, :], -UVW[2, :],
+    color=rgb, length=0.4, arrow_length_ratio=0.5, pivot='tail')
+  ax.scatter (UVW[0, :], UVW[1, :], UVW[2, :], c=rgb)
+
+  ax.set_title ('Random poses')
+  ax.set_aspect (1)
+  ax.set_xlim (-1, 1)
+  ax.set_ylim (-1, 1)
+  ax.set_zlim (-1, 1)
+
+  fig2.tight_layout ()
+  #black_background (ax)
+  black_3d_background (ax)
+
+  single_out_name = out_name + '_single.eps'
+  fig2.savefig (single_out_name)
+  print ('Written plot to %s' % single_out_name)
+
+  single_out_name = out_name + '_single.png'
+  fig2.savefig (single_out_name)
+  print ('Written plot to %s' % single_out_name)
 
   plt.show ()
 

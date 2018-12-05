@@ -75,6 +75,28 @@ def black_background (ax=None, title_hdl=None, bg_color='black', fg_color='white
     plt.setp (title_hdl, color=fg_color)
 
 
+def black_3d_background (ax=None):
+
+  if ax is None:
+    ax = plt.gca ()
+
+  # Ref: https://stackoverflow.com/questions/11448972/changing-the-background-color-of-the-axes-planes-of-a-matplotlib-3d-plot
+  #ax.w_xaxis.set_pane_color ((0, 0, 0, 0))
+  #ax.w_yaxis.set_pane_color ((0, 0, 0, 0))
+  #ax.w_zaxis.set_pane_color ((0, 0, 0, 0))
+
+  # Get rid of colored axes planes
+  # First remove fill
+  ax.xaxis.pane.fill = False
+  ax.yaxis.pane.fill = False
+  ax.zaxis.pane.fill = False
+
+  # Now set color to white (or whatever is "invisible")
+  #ax.xaxis.pane.set_edgecolor('w')
+  #ax.yaxis.pane.set_edgecolor('w')
+  #ax.zaxis.pane.set_edgecolor('w')
+
+
 # Colorbar with black background
 # Parameters:
 #   colorbar: object returned from plt.colorbar()
