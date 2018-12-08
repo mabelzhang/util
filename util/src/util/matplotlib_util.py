@@ -92,9 +92,14 @@ def black_3d_background (ax=None):
   ax.zaxis.pane.fill = False
 
   # Now set color to white (or whatever is "invisible")
-  #ax.xaxis.pane.set_edgecolor('w')
-  #ax.yaxis.pane.set_edgecolor('w')
-  #ax.zaxis.pane.set_edgecolor('w')
+  ax.xaxis.pane.set_edgecolor((1.0, 1.0, 1.0, 1))
+  ax.yaxis.pane.set_edgecolor((1.0, 1.0, 1.0, 1))
+  ax.zaxis.pane.set_edgecolor((1.0, 1.0, 1.0, 1))
+
+  # Ref https://stackoverflow.com/questions/17925545/adjusting-gridlines-on-a-3d-matplotlib-figure
+  ax.w_xaxis._axinfo.update({'grid' : {'color': (0.2, 0.2, 0.2, 1)}})
+  ax.w_yaxis._axinfo.update({'grid' : {'color': (0.2, 0.2, 0.2, 1)}})
+  ax.w_zaxis._axinfo.update({'grid' : {'color': (0.2, 0.2, 0.2, 1)}})
 
 
 # Colorbar with black background
@@ -257,6 +262,13 @@ def tab10_colormap ():
 
 
 # Ref: https://matplotlib.org/examples/color/colormaps_reference.html
+# Test with:
+'''
+from matplotlib_util import plot_color_gradients
+plot_color_gradients('jet')
+from matplotlib import pyplot as plt
+plt.show()
+'''
 def plot_color_gradients (cm_name):
 
   gradient = np.linspace(0, 1, 256)
@@ -267,11 +279,15 @@ def plot_color_gradients (cm_name):
   pos = list(ax.get_position().bounds)
   x_text = pos[0] - 0.01
   y_text = pos[1] + pos[3]/2.
-  fig = plt.gcf ()
-  fig.text(x_text, y_text, cm_name, va='center', ha='right', fontsize=10)
+
+  #fig = plt.gcf ()
+  #fig.text(x_text, y_text, cm_name, va='center', ha='right', fontsize=10)
 
   # Turn off *all* ticks & spines, not just the ones with colormaps.
   ax.set_axis_off()
+
+  plt.savefig ('color_gradient.eps', bbox_inches='tight')
+  print ('Color gradient image saved to color_gradient.eps')
 
 
 def plot_colormap ():
