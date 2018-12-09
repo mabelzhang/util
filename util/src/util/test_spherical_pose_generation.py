@@ -223,17 +223,19 @@ def main ():
 
   fig2.tight_layout ()
   if BLACK_BG:
-    black_background (ax)
     black_3d_background (ax)
+    black_background (ax)
 
   single_out_base = out_name + '_single_black'
 
   single_out_name = single_out_base + '.eps'
-  fig2.savefig (single_out_name)
+  fig2.savefig (single_out_name, bbox_inches='tight',
+    facecolor=fig2.get_facecolor (), edgecolor='none', transparent=True)
   print ('Written plot to %s' % single_out_name)
 
   single_out_name = single_out_base + '.png'
-  fig2.savefig (single_out_name)
+  fig2.savefig (single_out_name, bbox_inches='tight',
+    facecolor=fig2.get_facecolor (), edgecolor='none', transparent=True)
   print ('Written plot to %s' % single_out_name)
 
   plt.show ()
