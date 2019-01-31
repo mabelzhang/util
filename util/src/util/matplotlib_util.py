@@ -15,10 +15,11 @@ if socket.gethostname () != 'snaefellsjokull':
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 from matplotlib.colors import LinearSegmentedColormap  # For custom colormap
+import matplotlib.patches as patches
 
 import numpy as np
 
-from util.ansi_colors import ansi_colors
+#from util.ansi_colors import ansi_colors
 
 
 # Call this fn at start of program, if you need truetype 42 fonts e.g. for
@@ -570,4 +571,63 @@ def mpl_imshow_savefig (img, out_name='', cmap_name=None, alpha=1.0, fig_num=0,
     fig.colorbar (cax, extend='both')
 
   return fig.number
+
+
+
+# Draw text and arc for an angle defined by two rays
+# Parameters:
+#   r1, r2: Two rays defining the angle. Each is a (x, y) vector
+#   origin: Location of angle
+#   lbl: Text label for angle
+#   algn: Text label alignment
+#   dist: Distance of arc and text label from angle origin, in axis units
+#   scatter: Whether to plot a dot at the position of text
+#   arc: Whether to draw an arc representing angle
+#   axes: Matplotlib axes object. Only used if arc==True.
+# Example usage:
+'''
+import matplotlib.pyplot as plt
+from matplotlib_util import draw_angle
+fig = plt.figure(figsize=(10,8))
+axes = fig.add_subplot(111)
+plt.plot ([0,3], [0,0])
+plt.plot ([0,2], [0,1])
+ax, ay, arc = draw_angle ([2,1],[3,0],[0,0],'angle','left',1,True,True,axes)
+plt.show ()
+'''
+def draw_angle (r1, r2, origin, lbl, algn, dist, scatter=True, arc=False,
+  axes=None):
+
+  r1 /= np.linalg.norm (r1)
+  r2 /= np.linalg.norm (r2)
+
+  mid_ray = 0.5 * (r1 + r2)
+  mid_ray /= np.linalg.norm (mid_ray)
+
+  # Compute angle of each ray from the x-axis
+  a1 = np.arctan2 (r1[1], r1[0])
+  a2 = np.arctan2 (r2[1], r2[0])
+  if a1 <= a2:
+    astart = a1
+    aend = a2
+  else:
+    astart = a2
+    aend = a1
+  astart = astart / np.pi * 180.0
+  aend = aend / np.pi * 180.0
+  print ('astart %g' % astart)
+  print ('aend %g' % aend)
+
+  ax, ay = origin + mid_ray * dist
+  arc = patches.Arc (origin, 2*dist, 2*dist, 0, theta1=astart, theta2=aend)
+
+  if scatter:
+    plt.scatter (ax, ay)
+  if arc:
+    if axes != None:
+      axes.add_patch (arc)
+  if len (lbl) > 0:
+    plt.text (ax, ay, lbl, horizontalalignment=algn)
+
+  return (ax, ay, arc)
 
